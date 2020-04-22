@@ -1,0 +1,121 @@
+{
+  "allowRemoteResourceManagement": false,
+  "policyEnforcementMode": "ENFORCING",
+  "resources": [
+    {
+      "name": "test-resource",
+      "type": "presto",
+      "ownerManagedAccess": false,
+      "displayName": "test-resource",
+      "attributes": {
+        "test.student": [
+          "write"
+        ],
+        "test.client": [
+          "read"
+        ]
+      },
+      "_id": "4bde1b60-5048-456b-bf3f-33bbcf927055",
+      "uris": []
+    },
+    {
+      "name": "Employee Resource",
+      "ownerManagedAccess": false,
+      "attributes": {},
+      "_id": "deed8ae3-41a9-4781-b6c7-cb297516c2c6",
+      "uris": [
+        "/api/{employee}/*"
+      ]
+    }
+  ],
+  "policies": [
+    {
+      "id": "15e7bbe5-34da-4f7f-9513-5ca0e09ca13e",
+      "name": "Only People Manager Policy",
+      "type": "role",
+      "logic": "POSITIVE",
+      "decisionStrategy": "UNANIMOUS",
+      "config": {
+        "roles": "[{\"id\":\"people-manager\",\"required\":false}]"
+      }
+    },
+    {
+      "id": "26525c94-489f-404d-bcd9-74ff041e5247",
+      "name": "AnyUserPolicy",
+      "description": "AnyUserPolicy",
+      "type": "role",
+      "logic": "POSITIVE",
+      "decisionStrategy": "UNANIMOUS",
+      "config": {
+        "roles": "[{\"id\":\"user\",\"required\":true},{\"id\":\"app-authz-rest-employee/uma_protection\",\"required\":false}]"
+      }
+    },
+    {
+      "id": "47982b70-c1fd-4f5d-ac76-4e15fb393e0d",
+      "name": "Test-Role-Policy-2",
+      "description": "Test-Role-Policy-2",
+      "type": "role",
+      "logic": "POSITIVE",
+      "decisionStrategy": "UNANIMOUS",
+      "config": {
+        "roles": "[{\"id\":\"uma_authorization\",\"required\":false},{\"id\":\"app-authz-rest-employee/uma_protection\",\"required\":false}]"
+      }
+    },
+    {
+      "id": "7b7df105-62cd-41e8-bc9c-97487f401876",
+      "name": "Role-Policy-2",
+      "description": "Role-Policy-2",
+      "type": "role",
+      "logic": "POSITIVE",
+      "decisionStrategy": "UNANIMOUS",
+      "config": {
+        "roles": "[{\"id\":\"app-authz-rest-employee/uma_protection\",\"required\":false},{\"id\":\"offline_access\",\"required\":false}]"
+      }
+    },
+    {
+      "id": "afee73e2-c22d-4b41-ac16-17febeee541c",
+      "name": "Employee Policy",
+      "type": "js",
+      "logic": "POSITIVE",
+      "decisionStrategy": "UNANIMOUS",
+      "config": {
+        "code": "var context = $evaluation.getContext();\nvar attributes = context.getAttributes();\nvar httpUri = attributes.getValue('http.uri');\n\nif (httpUri) {\n    var uriParts = httpUri.asString(0).split('/');\n    var identity = context.getIdentity();\n    var username = identity.getAttributes().getValue('preferred_username').asString(0);\n    \n    if (uriParts[2] == username) {\n        $evaluation.grant();\n    }\n}"
+      }
+    },
+    {
+      "id": "521b8081-5097-4264-af70-168f34c3b2a7",
+      "name": "Employee Permission",
+      "type": "resource",
+      "logic": "POSITIVE",
+      "decisionStrategy": "AFFIRMATIVE",
+      "config": {
+        "resources": "[\"Employee Resource\"]",
+        "applyPolicies": "[\"Only People Manager Policy\",\"Employee Policy\"]"
+      }
+    },
+    {
+      "id": "61f10c7e-267b-41c7-a946-bf6fa5f72a04",
+      "name": "delete_row",
+      "type": "resource",
+      "logic": "POSITIVE",
+      "decisionStrategy": "UNANIMOUS",
+      "config": {
+        "resources": "[\"test-resource\"]"
+      }
+    },
+    {
+      "id": "968e89a5-583d-47af-867c-3f507eb1b6a8",
+      "name": "Test-Resource-Based-Permission",
+      "description": "Test-Resource-Based-Permission",
+      "type": "resource",
+      "logic": "POSITIVE",
+      "decisionStrategy": "AFFIRMATIVE",
+      "config": {
+        "resources": "[\"test-resource\"]",
+        "applyPolicies": "[\"Test-Role-Policy-2\",\"AnyUserPolicy\"]"
+      }
+    }
+  ],
+  "scopes": [],
+  "decisionStrategy": "UNANIMOUS"
+}
